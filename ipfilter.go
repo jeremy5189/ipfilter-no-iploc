@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/phuslu/iploc"
 	"github.com/tomasen/realip"
 )
 
@@ -25,10 +24,6 @@ type Options struct {
 	AllowedIPs []string
 	//explicity blocked IPs
 	BlockedIPs []string
-	//explicity allowed country ISO codes
-	AllowedCountries []string
-	//explicity blocked country ISO codes
-	BlockedCountries []string
 	//block by default (defaults to allow)
 	BlockByDefault bool
 	// TrustProxy enable check request IP from proxy
@@ -78,12 +73,6 @@ func New(opts Options) *IPFilter {
 	}
 	for _, ip := range opts.AllowedIPs {
 		f.AllowIP(ip)
-	}
-	for _, code := range opts.BlockedCountries {
-		f.BlockCountry(code)
-	}
-	for _, code := range opts.AllowedCountries {
-		f.AllowCountry(code)
 	}
 	return f
 }
@@ -142,22 +131,6 @@ func (f *IPFilter) ToggleIP(str string, allowed bool) bool {
 	return false
 }
 
-func (f *IPFilter) AllowCountry(code string) {
-	f.ToggleCountry(code, true)
-}
-
-func (f *IPFilter) BlockCountry(code string) {
-	f.ToggleCountry(code, false)
-}
-
-//ToggleCountry alters a specific country setting
-func (f *IPFilter) ToggleCountry(code string, allowed bool) {
-
-	f.mut.Lock()
-	f.codes[code] = allowed
-	f.mut.Unlock()
-}
-
 //ToggleDefault alters the default setting
 func (f *IPFilter) ToggleDefault(allowed bool) {
 	f.mut.Lock()
@@ -198,13 +171,6 @@ func (f *IPFilter) NetAllowed(ip net.IP) bool {
 	if blocked {
 		return false
 	}
-	//check country codes
-	code := NetIPToCountry(ip)
-	if code != "" {
-		if allowed, ok := f.codes[code]; ok {
-			return allowed
-		}
-	}
 	//use default setting
 	return f.defaultAllowed
 }
@@ -228,21 +194,6 @@ func (f *IPFilter) Wrap(next http.Handler) http.Handler {
 //Wrap is equivalent to NewLazy(opts) then Wrap(next)
 func Wrap(next http.Handler, opts Options) http.Handler {
 	return New(opts).Wrap(next)
-}
-
-//IPToCountry is a simple IP-country code lookup.
-//Returns an empty string when cannot determine country.
-func IPToCountry(ipstr string) string {
-	return NetIPToCountry(net.ParseIP(ipstr))
-}
-
-//NetIPToCountry is a simple IP-country code lookup.
-//Returns an empty string when cannot determine country.
-func NetIPToCountry(ip net.IP) string {
-	if ip != nil {
-		return string(iploc.Country(ip))
-	}
-	return ""
 }
 
 type ipFilterMiddleware struct {
@@ -280,12 +231,4 @@ func NewNoDB(opts Options) *IPFilter {
 //NewLazy is the same as New
 func NewLazy(opts Options) *IPFilter {
 	return New(opts)
-}
-
-func (f *IPFilter) IPToCountry(ipstr string) string {
-	return IPToCountry(ipstr)
-}
-
-func (f *IPFilter) NetIPToCountry(ip net.IP) string {
-	return NetIPToCountry(ip)
 }
