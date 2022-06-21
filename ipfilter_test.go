@@ -4,7 +4,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/jeremy5189/ipfilter-no-iploc"
+	"github.com/jeremy5189/ipfilter-no-iploc/v2"
 	"github.com/stretchr/testify/assert"
 )
 
