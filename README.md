@@ -2,6 +2,8 @@
 
 A package for IP Filtering in Go (golang)
 
+**This fork version had iploc feature removed to save memory**
+
 [![GoDoc](https://godoc.org/github.com/jpillora/ipfilter?status.svg)](https://pkg.go.dev/github.com/jpillora/ipfilter?tab=doc)  [![Tests](https://github.com/jpillora/ipfilter/workflows/Tests/badge.svg)](https://github.com/jpillora/ipfilter/actions?workflow=Tests)
 
 ### Install
@@ -20,28 +22,6 @@ go get github.com/jpillora/ipfilter
 * Simple HTTP middleware
 
 ### Usage
-
-**Country-block HTTP middleware**
-
-```go
-h := http.Handler(...)
-myProtectedHandler := ipfilter.Wrap(h, ipfilter.Options{
-    //block requests from China and Russia by IP
-    BlockedCountries: []string{"CN", "RU"},
-})
-http.ListenAndServe(":8080", myProtectedHandler)
-```
-
-**Country-block stand-alone**
-
-```go
-f := ipfilter.New(ipfilter.Options{
-    BlockedCountries: []string{"CN"},
-})
-
-f.Blocked("116.31.116.51") //=> true (CN)
-f.Allowed("216.58.199.67") //=> true (US)
-```
 
 **Async allow LAN hosts middleware**
 
@@ -80,8 +60,6 @@ f.Allowed("10.0.0.42") //=> false
 f.AllowIP("10.0.0.0/8")
 f.Allowed("10.0.0.42") //=> true
 f.Allowed("203.25.111.68") //=> false
-//and allow everyone in Australia
-f.AllowCountry("AU")
 f.Allowed("203.25.111.68") //=> true
 ```
 
@@ -89,13 +67,6 @@ f.Allowed("203.25.111.68") //=> true
 
 ```go
 f.NetAllowed(net.IP{203,25,111,68}) //=> true
-```
-
-**Low-level single IP to country**
-
-```go
-f.IPToCountry("203.25.111.68") //=> "AU"
-f.NetIPToCountry(net.IP{203,25,111,68}) //=> "AU"
 ```
 
 **Advanced HTTP middleware**
