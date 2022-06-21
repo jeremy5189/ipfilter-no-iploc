@@ -1,4 +1,4 @@
-module github.com/jpillora/ipfilter
+module github.com/jeremy5189/ipfilter-no-iploc
 
 go 1.16
 
